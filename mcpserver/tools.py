@@ -20,7 +20,13 @@ def _eval(node):
     if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
         return node.value
     if isinstance(node, ast.BinOp) and type(node.op) in _BINOPS:
-        return _BINOPS[type(node.op)](_eval(node.left), _eval(node.right))
+        left, right = _eval(node.left), _eval(node.right)
+        if isinstance(node.op, ast.Pow) and (abs(right) > 100 or abs(left) > 1e6):
+            raise ValueError("power exceeds demo limit")
+        value = _BINOPS[type(node.op)](left, right)
+        if isinstance(value, complex) or abs(value) > 1e100:
+            raise ValueError("result exceeds demo limit")
+        return value
     if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
         return -_eval(node.operand)
     raise ValueError("only + - * / ** % on numbers")

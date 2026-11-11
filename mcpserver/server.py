@@ -47,9 +47,15 @@ class MCPServer:
     # -- protocol handlers -------------------------------------------------
 
     def handle(self, msg: dict) -> dict | None:
+        if not isinstance(msg, dict) or msg.get("jsonrpc") != "2.0" or not isinstance(msg.get("method"), str):
+            return self._error(None, -32600, "invalid request")
+        if "params" in msg and not isinstance(msg["params"], dict):
+            return self._error(msg.get("id"), -32602, "params must be an object")
         method = msg.get("method", "")
         msg_id = msg.get("id")
 
+        if "id" not in msg:
+            return None
         if method == "initialize":
             self.initialized = True
             return self._result(msg_id, {

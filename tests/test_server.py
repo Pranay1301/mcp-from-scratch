@@ -73,3 +73,12 @@ def test_serve_over_pipes():
     assert lines[0]["result"]["serverInfo"]["name"] == "test-server"
     assert lines[1]["result"]["content"][0]["text"] == "2+2 = 4"
     assert lines[2]["error"]["code"] == -32700  # parse error
+
+
+def test_invalid_json_rpc_does_not_crash():
+    for message in ([], 42, {'method': 'ping'}):
+        assert _server().handle(message)['error']['code'] == -32600
+
+
+def test_notifications_never_get_tool_response():
+    assert _server().handle({'jsonrpc': '2.0', 'method': 'tools/list'}) is None
